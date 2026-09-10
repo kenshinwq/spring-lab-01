@@ -26,7 +26,15 @@ public class HelloController {
         );
     }
 
+    @GetMapping("/reverse")
+    public ReverseResponse reverse(@RequestParam(defaultValue = "Spring Framework") String text) {
+        String reversed = new StringBuilder(text).reverse().toString();
+        return new ReverseResponse(text, reversed, text.length());
+    }
+
     public record Greeting(String message, String owner, LocalDateTime timestamp) { }
 
     public record Info(String owner, String javaVersion, int cpuCores) { }
+
+    public record ReverseResponse(String original, String reversed, int length) { }
 }
