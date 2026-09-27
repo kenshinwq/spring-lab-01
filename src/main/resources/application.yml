@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: spring-lab-01
+
+server:
+  port: 8080
+
+app:
+  owner: Bekzat Abay
+  group: 2405-IS
+  mail:
+    from: no-reply@iitu.kz
+    retry-count: 3
+    timeout: 5s
+    enabled: true
+  pagination:
+    default-size: 20
+    max-size: 200
+
+logging:
+  level:
+    kz.iitu: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,env,configprops,conditions
+  endpoint:
+    env:
+      show-values: always
