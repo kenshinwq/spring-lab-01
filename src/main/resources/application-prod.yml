@@ -1,0 +1,14 @@
+server:
+  port: 8080
+
+app:
+  mail:
+    enabled: true
+    retry-count: 5
+  pagination:
+    default-size: 25
+    max-size: 500
+
+logging:
+  level:
+    kz.iitu: WARN
