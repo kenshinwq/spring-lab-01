@@ -1,0 +1,68 @@
+### 1. List all books
+GET http://localhost:8080/api/books
+
+### 2. List books with filter and limit
+GET http://localhost:8080/api/books?author=Bloch&limit=1
+
+### 3. Read one book (found: 200)
+GET http://localhost:8080/api/books/1
+
+### 4. Read one book (not found: 404)
+GET http://localhost:8080/api/books/999
+
+### 5. Create a new book (201 Created + Location)
+POST http://localhost:8080/api/books
+Content-Type: application/json
+
+{
+  "title": "Pro Spring 6",
+  "author": "Cosmina",
+  "year": 2023
+}
+
+### 6. Replace a book (200 OK)
+PUT http://localhost:8080/api/books/1
+Content-Type: application/json
+
+{
+  "title": "Effective Java (3rd Edition)",
+  "author": "Joshua Bloch",
+  "year": 2018
+}
+
+### 7. Delete a book (first time: 204 No Content)
+DELETE http://localhost:8080/api/books/2
+
+### 8. Delete a book (second time: 404 Not Found)
+DELETE http://localhost:8080/api/books/2
+
+### 9. Task 4: Post/Redirect/Get (Form submit)
+POST http://localhost:8080/books
+Content-Type: application/x-www-form-urlencoded
+
+title=Java+Precisely&author=Sestoft&year=2016
+
+### 10. Status code experiment: 400 Bad Request (TypeMismatchException)
+GET http://localhost:8080/api/books/abc
+
+### 11. Status code experiment: 404 Not Found (No handler mapping)
+GET http://localhost:8080/api/nothing
+
+### 12. Status code experiment: 405 Method Not Allowed (DELETE not allowed on /api/books)
+DELETE http://localhost:8080/api/books
+
+### 13. Status code experiment: 415 Unsupported Media Type (text/plain not supported for @RequestBody)
+POST http://localhost:8080/api/books
+Content-Type: text/plain
+
+Hello Spring
+
+### 14. Status code experiment: 406 Not Acceptable (Accept: application/xml not supported)
+GET http://localhost:8080/api/books
+Accept: application/xml
+
+### 15. Individual Variant 2: Valid 4-digit year (200 OK)
+GET http://localhost:8080/api/books/by-year/2018
+
+### 16. Individual Variant 2: Invalid year regex (404 Not Found)
+GET http://localhost:8080/api/books/by-year/99
