@@ -10,46 +10,14 @@
 
     <p th:if="${message}" class="flash" th:text="${message}"></p>
 
-    <div class="filter-box">
-        <form method="get" action="/books">
-            <label for="author">Filter by author:</label>
-            <input type="text" id="author" name="author" th:value="${author}" placeholder="e.g. Bloch">
-            <button type="submit">Filter</button>
-            <a href="/books" th:if="${author != null and !#strings.isEmpty(author)}" class="reset-link">Reset</a>
-        </form>
-    </div>
-
     <table>
-        <thead>
-            <tr><th>#</th><th>Title</th><th>Author</th><th>Year</th></tr>
-        </thead>
-        <tbody>
-            <tr th:each="book : ${books}">
-                <td th:text="${book.id}">1</td>
-                <td th:text="${book.title}">Title</td>
-                <td th:text="${book.author}">Author</td>
-                <td th:text="${book.year}">2020</td>
-            </tr>
-        </tbody>
+        <tr><th>#</th><th>Title</th><th>Author</th><th>Year</th></tr>
+        <tr th:each="book : ${books}">
+            <td th:text="${book.id}">1</td>
+            <td th:text="${book.title}">Title</td>
+            <td th:text="${book.author}">Author</td>
+            <td th:text="${book.year}">2020</td>
+        </tr>
     </table>
-
-    <div class="add-box">
-        <h3>Add new book</h3>
-        <form method="post" action="/books">
-            <div class="form-group">
-                <label for="title">Title:</label>
-                <input type="text" id="title" name="title" required placeholder="Book title">
-            </div>
-            <div class="form-group">
-                <label for="new-author">Author:</label>
-                <input type="text" id="new-author" name="author" required placeholder="Author name">
-            </div>
-            <div class="form-group">
-                <label for="year">Year:</label>
-                <input type="number" id="year" name="year" required placeholder="e.g. 2024">
-            </div>
-            <button type="submit">Add Book</button>
-        </form>
-    </div>
 </body>
 </html>
