@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{books.details}">Book Details</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+    <h1 th:text="#{books.details}">Book Details</h1>
+
+    <div class="card">
+        <p><strong>ID:</strong> <span th:text="${book.id}">1</span></p>
+        <p><strong>Title:</strong> <span th:text="${book.title}">Title</span></p>
+        <p><strong>Author:</strong> <span th:text="${book.author}">Author</span></p>
+        <p><strong>Year:</strong> <span th:text="${book.year}">2020</span></p>
+    </div>
+
+    <p><a th:href="@{/books}" class="btn-secondary" th:text="#{books.backToList}">Back to catalogue</a></p>
+</body>
+</html>
