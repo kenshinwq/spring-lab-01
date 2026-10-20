@@ -1,0 +1,75 @@
+### 1. GET all books
+GET http://localhost:8080/api/books
+Accept: application/json
+
+### 2. GET book by ID (existing)
+GET http://localhost:8080/api/books/1
+Accept: application/json
+
+### 3. GET book by ID (non-existent -> 404 ProblemDetail)
+GET http://localhost:8080/api/books/999
+Accept: application/problem+json
+
+### 4. POST create valid book (-> 201 Created + Location header)
+POST http://localhost:8080/api/books
+Content-Type: application/json
+
+{
+  "title": "Designing Data-Intensive Applications",
+  "author": "Martin Kleppmann",
+  "year": 2017,
+  "genre": "TECHNICAL"
+}
+
+### 5. POST create invalid book with empty title (-> 400 Bad Request ProblemDetail)
+POST http://localhost:8080/api/books
+Content-Type: application/json
+
+{
+  "title": "",
+  "author": "Martin Kleppmann",
+  "year": 2017,
+  "genre": "TECHNICAL"
+}
+
+### 6. POST create duplicate book (-> 409 Conflict ProblemDetail)
+POST http://localhost:8080/api/books
+Content-Type: application/json
+
+{
+  "title": "Effective Java",
+  "author": "Joshua Bloch",
+  "year": 2018,
+  "genre": "TECHNICAL"
+}
+
+### 7. PUT update book (-> 200 OK)
+PUT http://localhost:8080/api/books/1
+Content-Type: application/json
+
+{
+  "title": "Effective Java 3rd Edition",
+  "author": "Joshua Bloch",
+  "year": 2018,
+  "genre": "TECHNICAL"
+}
+
+### 8. DELETE book (1st call -> 204 No Content)
+DELETE http://localhost:8080/api/books/1
+
+### 9. DELETE book (2nd call -> 404 Not Found ProblemDetail)
+DELETE http://localhost:8080/api/books/1
+
+### 10. Variant 2: Sorting and filtering (?sort=year,desc&genre=NOVEL)
+GET http://localhost:8080/api/books?sort=year,desc&genre=NOVEL
+Accept: application/json
+
+### 11. Variant 2: Invalid sort field (?sort=invalidField,desc -> 400 Bad Request ProblemDetail)
+GET http://localhost:8080/api/books?sort=invalidField,desc
+Accept: application/problem+json
+
+### 12. OpenAPI v3 Document
+GET http://localhost:8080/v3/api-docs
+
+### 13. Swagger UI page
+GET http://localhost:8080/swagger-ui.html
