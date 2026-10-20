@@ -26,9 +26,7 @@ public class BookRestController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Book> find(@PathVariable long id) {
-        return service.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(service.getById(id));
     }
 
     @PostMapping

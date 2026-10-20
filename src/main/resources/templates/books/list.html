@@ -2,22 +2,42 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${title}">Catalogue</title>
+    <title th:text="#{books.catalogue}">Catalogue</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-    <h1 th:text="${title}">Catalogue</h1>
+    <div class="header-nav">
+        <h1 th:text="#{books.catalogue}">Catalogue</h1>
+        <div class="lang-switch">
+            <span>Language: </span>
+            <a th:href="@{/books(lang='en')}">English</a> |
+            <a th:href="@{/books(lang='ru')}">Русский</a>
+        </div>
+    </div>
 
     <p th:if="${message}" class="flash" th:text="${message}"></p>
 
+    <div class="actions-bar">
+        <a th:href="@{/books/new}" class="btn-primary" th:text="#{books.newBookLink}">+ Add new book</a>
+    </div>
+
     <table>
-        <tr><th>#</th><th>Title</th><th>Author</th><th>Year</th></tr>
-        <tr th:each="book : ${books}">
-            <td th:text="${book.id}">1</td>
-            <td th:text="${book.title}">Title</td>
-            <td th:text="${book.author}">Author</td>
-            <td th:text="${book.year}">2020</td>
-        </tr>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th th:text="#{book.title}">Title</th>
+                <th th:text="#{book.author}">Author</th>
+                <th th:text="#{book.year}">Year</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="book : ${books}">
+                <td><a th:href="@{/books/{id}(id=${book.id})}" th:text="${book.id}">1</a></td>
+                <td><a th:href="@{/books/{id}(id=${book.id})}" th:text="${book.title}">Title</a></td>
+                <td th:text="${book.author}">Author</td>
+                <td th:text="${book.year}">2020</td>
+            </tr>
+        </tbody>
     </table>
 </body>
 </html>
