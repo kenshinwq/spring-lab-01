@@ -140,9 +140,9 @@ class BookValidationAndExceptionTests {
         mockMvc.perform(get("/books/999"))
                 .andExpect(status().isNotFound())
                 .andExpect(view().name("error/not-found"))
-                .andExpect(model().attribute("message", "Book not found with id: 999"))
+                .andExpect(model().attribute("message", "No book with id 999"))
                 .andExpect(content().string(containsString("404 - Not Found")))
-                .andExpect(content().string(containsString("Book not found with id: 999")));
+                .andExpect(content().string(containsString("No book with id 999")));
     }
 
     @Test
@@ -153,6 +153,6 @@ class BookValidationAndExceptionTests {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.title", is("Book not found")))
                 .andExpect(jsonPath("$.status", is(404)))
-                .andExpect(jsonPath("$.detail", is("Book not found with id: 999")));
+                .andExpect(jsonPath("$.detail", is("No book with id 999")));
     }
 }
