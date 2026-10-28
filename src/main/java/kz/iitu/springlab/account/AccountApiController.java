@@ -39,9 +39,17 @@ public class AccountApiController {
     @Operation(summary = "Task A: Transfer money atomically between accounts")
     @PostMapping("/transfer")
     public ResponseEntity<Map<String, Object>> transfer(
-            @RequestParam Long fromId,
-            @RequestParam Long toId,
-            @RequestParam BigDecimal amount) {
+            @RequestParam(required = false) Long fromId,
+            @RequestParam(required = false) Long toId,
+            @RequestParam(defaultValue = "100.00") BigDecimal amount) {
+
+        if (fromId == null || toId == null) {
+            Account alice = accountRepository.findByOwnerName("Alice").orElseThrow();
+            Account bob = accountRepository.findByOwnerName("Bob").orElseThrow();
+            fromId = alice.getId();
+            toId = bob.getId();
+        }
+
         accountService.transfer(fromId, toId, amount);
         Account from = accountService.findById(fromId);
         Account to = accountService.findById(toId);
@@ -56,9 +64,17 @@ public class AccountApiController {
     @Operation(summary = "Task A: Transfer with simulated failure to demonstrate rollback")
     @PostMapping("/transfer-fail")
     public ResponseEntity<Map<String, Object>> transferFail(
-            @RequestParam Long fromId,
-            @RequestParam Long toId,
-            @RequestParam BigDecimal amount) {
+            @RequestParam(required = false) Long fromId,
+            @RequestParam(required = false) Long toId,
+            @RequestParam(defaultValue = "100.00") BigDecimal amount) {
+
+        if (fromId == null || toId == null) {
+            Account alice = accountRepository.findByOwnerName("Alice").orElseThrow();
+            Account bob = accountRepository.findByOwnerName("Bob").orElseThrow();
+            fromId = alice.getId();
+            toId = bob.getId();
+        }
+
         try {
             accountService.transferWithUncheckedException(fromId, toId, amount);
             return ResponseEntity.ok(Map.of("status", "SUCCESS"));
@@ -69,7 +85,8 @@ public class AccountApiController {
                     "status", "ROLLED_BACK",
                     "error", e.getMessage(),
                     "fromAccountBalance", from.getBalance(),
-                    "toAccountBalance", to.getBalance()
+                    "toAccountBalance", to.getBalance(),
+                    "explanation", "Transaction was automatically rolled back due to unhandled RuntimeException!"
             ));
         }
     }
@@ -79,8 +96,12 @@ public class AccountApiController {
     public ResponseEntity<Map<String, Object>> propagationDemo(
             @RequestParam(defaultValue = "true") boolean requiresNew,
             @RequestParam(defaultValue = "true") boolean failOuter) {
-        Long fromId = 1L;
-        Long toId = 2L;
+
+        Account alice = accountRepository.findByOwnerName("Alice").orElseThrow();
+        Account bob = accountRepository.findByOwnerName("Bob").orElseThrow();
+        Long fromId = alice.getId();
+        Long toId = bob.getId();
+
         BigDecimal amount = new BigDecimal("50.00");
         long auditCountBefore = auditLogRepository.count();
 
@@ -125,8 +146,11 @@ public class AccountApiController {
     @Operation(summary = "Task D: Optimistic Locking conflict simulation with @Version")
     @PostMapping("/optimistic-lock-demo")
     public ResponseEntity<Map<String, Object>> optimisticLockDemo() {
-        Account copy1 = accountRepository.findById(1L).orElseThrow();
-        Account copy2 = accountRepository.findById(1L).orElseThrow();
+        Account alice = accountRepository.findByOwnerName("Alice").orElseThrow();
+        Long aliceId = alice.getId();
+
+        Account copy1 = accountRepository.findById(aliceId).orElseThrow();
+        Account copy2 = accountRepository.findById(aliceId).orElseThrow();
 
         // 1. Commit update with copy1
         copy1.credit(new BigDecimal("10.00"));
@@ -138,7 +162,7 @@ public class AccountApiController {
             accountRepository.saveAndFlush(copy2);
             return ResponseEntity.ok(Map.of("status", "UNEXPECTED_SUCCESS"));
         } catch (Exception ex) {
-            Account currentInDb = accountRepository.findById(1L).orElseThrow();
+            Account currentInDb = accountRepository.findById(aliceId).orElseThrow();
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
                     "status", "OPTIMISTIC_LOCK_CONFLICT_DETECTED",
                     "exceptionType", ex.getClass().getSimpleName(),

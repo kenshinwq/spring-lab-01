@@ -1,9 +1,13 @@
 package kz.iitu.springlab.catalog;
 
+import kz.iitu.springlab.account.Account;
+import kz.iitu.springlab.account.AccountRepository;
 import kz.iitu.springlab.web.Genre;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -12,20 +16,30 @@ public class DataInitializer implements CommandLineRunner {
     private final BookRepository bookRepository;
     private final TagRepository tagRepository;
     private final BookTagRepository bookTagRepository;
+    private final AccountRepository accountRepository;
 
     public DataInitializer(AuthorRepository authorRepository,
                            BookRepository bookRepository,
                            TagRepository tagRepository,
-                           BookTagRepository bookTagRepository) {
+                           BookTagRepository bookTagRepository,
+                           AccountRepository accountRepository) {
         this.authorRepository = authorRepository;
         this.bookRepository = bookRepository;
         this.tagRepository = tagRepository;
         this.bookTagRepository = bookTagRepository;
+        this.accountRepository = accountRepository;
     }
 
     @Override
     @Transactional
     public void run(String... args) {
+        // Seed accounts if empty (Lab 9)
+        if (accountRepository.count() == 0) {
+            accountRepository.save(new Account("Alice", new BigDecimal("1000.00")));
+            accountRepository.save(new Account("Bob", new BigDecimal("500.00")));
+            System.out.println(">>> Database seeded: Accounts Alice (1000) and Bob (500) created.");
+        }
+
         if (authorRepository.count() > 0) {
             return;
         }
