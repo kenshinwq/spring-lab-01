@@ -1,27 +1,41 @@
-### 1. GET all books
+### 1. Task 4.1: GET paged collection (default size=5, sort=title)
 GET http://localhost:8080/api/books
 Accept: application/json
 
-### 2. GET book by ID (existing)
+### 2. Task 4.2: Page 0, size 3
+GET http://localhost:8080/api/books?page=0&size=3
+Accept: application/json
+
+### 3. Task 4.2: Page 1, size 3, sorted by year descending
+GET http://localhost:8080/api/books?page=1&size=3&sort=year,desc
+Accept: application/json
+
+### 4. GET single book by ID
 GET http://localhost:8080/api/books/1
 Accept: application/json
 
-### 3. GET book by ID (non-existent -> 404 ProblemDetail)
+### 5. Task 3.3: GET non-existing book (404 ProblemDetail)
 GET http://localhost:8080/api/books/999
 Accept: application/problem+json
 
-### 4. POST create valid book (-> 201 Created + Location header)
+### 6. POST create a new book (201 Created + Location header)
 POST http://localhost:8080/api/books
 Content-Type: application/json
 
 {
-  "title": "Designing Data-Intensive Applications",
-  "author": "Martin Kleppmann",
+  "title": "Clean Architecture",
+  "author": "Robert Martin",
   "year": 2017,
   "genre": "TECHNICAL"
 }
 
-### 5. POST create invalid book with empty title (-> 400 Bad Request ProblemDetail)
+### 7. DELETE book (1st call: 204 No Content)
+DELETE http://localhost:8080/api/books/1
+
+### 8. DELETE book (2nd call: 404 Not Found ProblemDetail)
+DELETE http://localhost:8080/api/books/1
+
+### 9. POST invalid book with empty title (400 Bad Request ProblemDetail)
 POST http://localhost:8080/api/books
 Content-Type: application/json
 
@@ -32,44 +46,52 @@ Content-Type: application/json
   "genre": "TECHNICAL"
 }
 
-### 6. POST create duplicate book (-> 409 Conflict ProblemDetail)
+### 10. POST duplicate book (409 Conflict ProblemDetail)
 POST http://localhost:8080/api/books
 Content-Type: application/json
 
 {
-  "title": "Effective Java",
-  "author": "Joshua Bloch",
-  "year": 2018,
+  "title": "Clean Code",
+  "author": "Robert Martin",
+  "year": 2008,
   "genre": "TECHNICAL"
 }
 
-### 7. PUT update book (-> 200 OK)
-PUT http://localhost:8080/api/books/1
-Content-Type: application/json
-
-{
-  "title": "Effective Java 3rd Edition",
-  "author": "Joshua Bloch",
-  "year": 2018,
-  "genre": "TECHNICAL"
-}
-
-### 8. DELETE book (1st call -> 204 No Content)
-DELETE http://localhost:8080/api/books/1
-
-### 9. DELETE book (2nd call -> 404 Not Found ProblemDetail)
-DELETE http://localhost:8080/api/books/1
-
-### 10. Variant 2: Sorting and filtering (?sort=year,desc&genre=NOVEL)
-GET http://localhost:8080/api/books?sort=year,desc&genre=NOVEL
+### 11. Task 4.3: Slice vs Page comparison (no count(*) query in Slice)
+GET http://localhost:8080/api/books/slice?genre=NOVEL&size=3
 Accept: application/json
 
-### 11. Variant 2: Invalid sort field (?sort=invalidField,desc -> 400 Bad Request ProblemDetail)
-GET http://localhost:8080/api/books?sort=invalidField,desc
-Accept: application/problem+json
+### 12. Task 3.1: Derived query - findByTitleContainingIgnoreCase
+GET http://localhost:8080/api/books/derived/by-title?fragment=Java
+Accept: application/json
 
-### 12. OpenAPI v3 Document
-GET http://localhost:8080/v3/api-docs
+### 13. Task 3.1: Derived query - findByYearBetweenOrderByYearDesc
+GET http://localhost:8080/api/books/derived/year-between?from=1940&to=1960
+Accept: application/json
 
-### 13. Swagger UI page
-GET http://localhost:8080/swagger-ui.html
+### 14. Task 3.1: Derived query - findTop3ByGenreOrderByYearDesc
+GET http://localhost:8080/api/books/derived/top3?genre=NOVEL
+Accept: application/json
+
+### 15. Task 3.1: Derived query - countByAuthorName
+GET http://localhost:8080/api/books/derived/author-count?name=George%20Orwell
+Accept: application/json
+
+### 16. Task 3.2: JPQL query with named parameters
+GET http://localhost:8080/api/books/search?genre=NOVEL&year=1945
+Accept: application/json
+
+### 17. Task 3.2: Bulk update using @Modifying
+POST http://localhost:8080/api/books/archive?year=1950
+
+### 18. Task 3.4: N+1 Demonstration (Without fetch join)
+GET http://localhost:8080/api/books/n-plus-one?fetchJoin=false
+Accept: application/json
+
+### 19. Task 3.4: N+1 Demonstration (With JOIN FETCH)
+GET http://localhost:8080/api/books/n-plus-one?fetchJoin=true
+Accept: application/json
+
+### 20. Variant 2: BookTag ManyToMany with addedAt attribute
+GET http://localhost:8080/api/books/variant2/book-tags
+Accept: application/json

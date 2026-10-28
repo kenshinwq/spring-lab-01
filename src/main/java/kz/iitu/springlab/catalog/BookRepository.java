@@ -1,46 +1,77 @@
 package kz.iitu.springlab.catalog;
 
 import kz.iitu.springlab.web.Genre;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
-@Repository
-public class BookRepository {
+public interface BookRepository extends JpaRepository<Book, Long> {
 
-    private final Map<Long, Book> storage = new ConcurrentHashMap<>();
-    private final AtomicLong sequence = new AtomicLong();
+    @Override
+    @EntityGraph(attributePaths = "author")
+    Optional<Book> findById(Long id);
 
-    public BookRepository() { // seed data with genres
-        save(new Book(null, "Effective Java", "Joshua Bloch", 2018, Genre.TECHNICAL, java.time.Instant.now().minusSeconds(86400 * 5)));
-        save(new Book(null, "Clean Code", "Robert Martin", 2008, Genre.TECHNICAL, java.time.Instant.now().minusSeconds(86400 * 10)));
-        save(new Book(null, "Spring in Action", "Craig Walls", 2022, Genre.TECHNICAL, java.time.Instant.now().minusSeconds(86400 * 2)));
-        save(new Book(null, "1984", "George Orwell", 1949, Genre.NOVEL, java.time.Instant.now().minusSeconds(86400 * 30)));
-        save(new Book(null, "To Kill a Mockingbird", "Harper Lee", 1960, Genre.NOVEL, java.time.Instant.now().minusSeconds(86400 * 20)));
-    }
+    @Override
+    @EntityGraph(attributePaths = "author")
+    List<Book> findAll();
 
-    public List<Book> findAll() {
-        return List.copyOf(storage.values());
-    }
+    // Task 3.1: Five derived queries
+    @EntityGraph(attributePaths = "author")
+    List<Book> findByGenre(Genre genre);
 
-    public Optional<Book> findById(long id) {
-        return Optional.ofNullable(storage.get(id));
-    }
+    @EntityGraph(attributePaths = "author")
+    List<Book> findByTitleContainingIgnoreCase(String fragment);
 
-    public Book save(Book book) {
-        long id = book.id() != null ? book.id() : sequence.incrementAndGet();
-        Genre genre = book.genre() != null ? book.genre() : Genre.OTHER;
-        java.time.Instant createdAt = book.createdAt() != null ? book.createdAt() : java.time.Instant.now();
-        Book stored = new Book(id, book.title(), book.author(), book.year(), genre, createdAt);
-        storage.put(id, stored);
-        return stored;
-    }
+    @EntityGraph(attributePaths = "author")
+    List<Book> findByYearBetweenOrderByYearDesc(int from, int to);
 
-    public boolean deleteById(long id) {
-        return storage.remove(id) != null;
-    }
+    @EntityGraph(attributePaths = "author")
+    List<Book> findTop3ByGenreOrderByYearDesc(Genre genre);
+
+    long countByAuthorName(String name);
+
+    // Task 3.2: JPQL queries
+    @Query("""
+           select b from Book b
+           left join fetch b.author
+           where b.genre = :genre and b.year >= :year
+           order by b.title""")
+    List<Book> search(@Param("genre") Genre genre, @Param("year") int year);
+
+    @Modifying(clearAutomatically = true)
+    @Query("update Book b set b.archived = true where b.year < :year")
+    int archiveOlderThan(@Param("year") int year);
+
+    // Task 3.4: N+1 demonstration queries
+    @Query("select b from Book b join fetch b.author")
+    List<Book> findAllWithAuthor();
+
+    // Plain query to intentionally demonstrate N+1 when lazy loading
+    @Query("select b from Book b")
+    List<Book> findAllPlain();
+
+    @EntityGraph(attributePaths = "author")
+    List<Book> findWithGraphByGenre(Genre genre);
+
+    // Task 4: Pagination and sorting
+    @EntityGraph(attributePaths = "author")
+    Page<Book> findByGenre(Genre genre, Pageable pageable);
+
+    @EntityGraph(attributePaths = "author")
+    Slice<Book> findSliceByGenre(Genre genre, Pageable pageable);
+
+    @Override
+    @EntityGraph(attributePaths = "author")
+    Page<Book> findAll(Pageable pageable);
+
+    // Duplicate check
+    boolean existsByTitleIgnoreCaseAndAuthorNameIgnoreCase(String title, String authorName);
 }
