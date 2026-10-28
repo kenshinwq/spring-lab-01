@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: spring-lab-01
+  datasource:
+    url: jdbc:postgresql://localhost:5432/springlab
+    username: ${SPRING_DATASOURCE_USERNAME:smartparking}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+
+server:
+  port: 8080
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs

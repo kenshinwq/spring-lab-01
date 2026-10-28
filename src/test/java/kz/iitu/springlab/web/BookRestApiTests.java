@@ -22,18 +22,21 @@ class BookRestApiTests {
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("Task 2: GET /api/books returns 200 and JSON array with DTO fields")
+    @DisplayName("Task 4: GET /api/books returns 200 and Page<BookResponse> with DTO fields and pagination metadata")
     void testListBooks() throws Exception {
         mockMvc.perform(get("/api/books"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(3))))
-                .andExpect(jsonPath("$[0].id").exists())
-                .andExpect(jsonPath("$[0].title").exists())
-                .andExpect(jsonPath("$[0].author").exists())
-                .andExpect(jsonPath("$[0].year").exists())
-                .andExpect(jsonPath("$[0].genre").exists())
-                .andExpect(jsonPath("$[0].createdAt").exists());
+                .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(3))))
+                .andExpect(jsonPath("$.content[0].id").exists())
+                .andExpect(jsonPath("$.content[0].title").exists())
+                .andExpect(jsonPath("$.content[0].author").exists())
+                .andExpect(jsonPath("$.content[0].year").exists())
+                .andExpect(jsonPath("$.content[0].genre").exists())
+                .andExpect(jsonPath("$.content[0].createdAt").exists())
+                .andExpect(jsonPath("$.totalElements").value(greaterThanOrEqualTo(8)))
+                .andExpect(jsonPath("$.totalPages").exists())
+                .andExpect(jsonPath("$.pageable").exists());
     }
 
     @Test
@@ -152,17 +155,121 @@ class BookRestApiTests {
     }
 
     @Test
-    @DisplayName("Variant 2: GET /api/books?sort=year,desc&genre=NOVEL returns sorted filtered books")
+    @DisplayName("Task 4 & Variant 2: GET /api/books?genre=NOVEL&sort=year,desc returns sorted page of books")
     void testVariant2SortingAndFiltering() throws Exception {
         mockMvc.perform(get("/api/books")
                         .param("genre", "NOVEL")
                         .param("sort", "year,desc"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(4)))
+                .andExpect(jsonPath("$.content[0].title").value("Go Set a Watchman"))
+                .andExpect(jsonPath("$.content[0].year").value(2015))
+                .andExpect(jsonPath("$.content[1].title").value("To Kill a Mockingbird"))
+                .andExpect(jsonPath("$.content[1].year").value(1960))
+                .andExpect(jsonPath("$.content[2].title").value("1984"))
+                .andExpect(jsonPath("$.content[2].year").value(1949))
+                .andExpect(jsonPath("$.content[3].title").value("Animal Farm"))
+                .andExpect(jsonPath("$.content[3].year").value(1945))
+                .andExpect(jsonPath("$.totalElements").value(4));
+    }
+
+    @Test
+    @DisplayName("Task 4: GET /api/books with pagination ?page=0&size=3 and ?page=1&size=3")
+    void testPaginationPages() throws Exception {
+        mockMvc.perform(get("/api/books")
+                        .param("page", "0")
+                        .param("size", "3"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(3)))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.size").value(3))
+                .andExpect(jsonPath("$.totalElements").value(8))
+                .andExpect(jsonPath("$.totalPages").value(3));
+
+        mockMvc.perform(get("/api/books")
+                        .param("page", "1")
+                        .param("size", "3"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(3)))
+                .andExpect(jsonPath("$.number").value(1));
+    }
+
+    @Test
+    @DisplayName("Task 4: GET /api/books/slice returns Slice without count query")
+    void testSliceEndpoint() throws Exception {
+        mockMvc.perform(get("/api/books/slice")
+                        .param("genre", "NOVEL")
+                        .param("page", "0")
+                        .param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.last").value(false));
+    }
+
+    @Test
+    @DisplayName("Task 3.1: Derived query endpoints (by-title, year-between, top3, author-count)")
+    void testDerivedQueries() throws Exception {
+        mockMvc.perform(get("/api/books/derived/by-title").param("fragment", "clean"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].title").value("Clean Code"));
+
+        mockMvc.perform(get("/api/books/derived/year-between").param("from", "1940").param("to", "1950"))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].title").value("To Kill a Mockingbird"))
-                .andExpect(jsonPath("$[0].year").value(1960))
-                .andExpect(jsonPath("$[1].title").value("1984"))
-                .andExpect(jsonPath("$[1].year").value(1949));
+                .andExpect(jsonPath("$[0].year").value(1949))
+                .andExpect(jsonPath("$[1].year").value(1945));
+
+        mockMvc.perform(get("/api/books/derived/top3").param("genre", "NOVEL"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[0].title").value("Go Set a Watchman"));
+
+        mockMvc.perform(get("/api/books/derived/author-count").param("name", "George Orwell"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.count").value(2));
+    }
+
+    @Test
+    @DisplayName("Task 3.2: JPQL search and @Modifying archive query")
+    void testJpqlSearchAndArchive() throws Exception {
+        mockMvc.perform(get("/api/books/search")
+                        .param("genre", "TECHNICAL")
+                        .param("year", "2007"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].title").value("Clean Code"))
+                .andExpect(jsonPath("$[1].title").value("Effective Java"));
+
+        mockMvc.perform(post("/api/books/archive").param("year", "1950"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.archivedThresholdYear").value(1950))
+                .andExpect(jsonPath("$.rowsUpdated").value(2));
+    }
+
+    @Test
+    @DisplayName("Task 3.4: N+1 demonstration endpoint (/api/books/n-plus-one)")
+    void testNPlusOneDemo() throws Exception {
+        mockMvc.perform(get("/api/books/n-plus-one").param("fetchJoin", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fetchJoinUsed").value(true))
+                .andExpect(jsonPath("$.booksCount").value(8))
+                .andExpect(jsonPath("$.items", hasSize(8)));
+    }
+
+    @Test
+    @DisplayName("Variant 2: BookTag entity with addedAt timestamp column")
+    void testVariant2BookTags() throws Exception {
+        mockMvc.perform(get("/api/books/variant2/book-tags"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(4))))
+                .andExpect(jsonPath("$[0].id").exists())
+                .andExpect(jsonPath("$[0].bookId").exists())
+                .andExpect(jsonPath("$[0].bookTitle").exists())
+                .andExpect(jsonPath("$[0].tagId").exists())
+                .andExpect(jsonPath("$[0].tagName").exists())
+                .andExpect(jsonPath("$[0].addedAt").exists());
     }
 
     @Test

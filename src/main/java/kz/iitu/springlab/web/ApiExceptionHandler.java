@@ -3,6 +3,7 @@ package kz.iitu.springlab.web;
 import kz.iitu.springlab.catalog.BookNotFoundException;
 import kz.iitu.springlab.catalog.DuplicateTitleException;
 import kz.iitu.springlab.catalog.InvalidSortFieldException;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -41,6 +42,16 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         problem.setType(URI.create("https://api.iitu.kz/errors/invalid-sort-field"));
         problem.setTitle("Invalid sort field");
         problem.setProperty("field", ex.getField());
+        return problem;
+    }
+
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ProblemDetail handlePropertyReferenceException(PropertyReferenceException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, "Unknown sort field: '" + ex.getPropertyName() + "'");
+        problem.setType(URI.create("https://api.iitu.kz/errors/invalid-sort-field"));
+        problem.setTitle("Invalid sort field");
+        problem.setProperty("field", ex.getPropertyName());
         return problem;
     }
 }
